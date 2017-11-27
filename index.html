@@ -1,0 +1,112 @@
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>A D3 map using queue.js</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.2.1.js" integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/queue-async/1.0.7/queue.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+    <script src="https://d3js.org/d3-array.v1.min.js"></script>
+    <script src="https://d3js.org/d3-geo.v1.min.js"></script>
+    <link href="http://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet" type="text/css">
+    <style>
+    body {
+        padding: 0;
+        margin: 0;
+        background: whitesmoke;
+    }
+ /*   svg {
+        background-color: blue;
+    }*/
+    h1 {
+        position: absolute;
+        left: 20px;
+        top: 10px;
+        font-family: "Proxima Nova", Montserrat, sans-serif;
+        font-size: 2em;
+        font-weight: 100;
+        color: #005DAA;
+        /* offical UK Kentucky blue */
+    }
+
+    h2 {
+        font-family: "Proxima Nova", Montserrat, sans-serif;
+        color: #005DAA;
+    }
+
+    .country {
+        stroke: #fff;
+        fill: #005DAA;
+    }
+
+    .hover {
+        fill: yellow;
+    }
+    </style>
+</head>
+
+<body>
+    <div class="page-header">
+        <h1>World Map</h1>
+    </div>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-6 map">
+            </div>
+            <div class="col-md-6">
+                <h2></h2>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Refs: http://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-0-details/
+
+    // var width = window.innerWidth,
+    //     height = window.innerHeight;
+    var width = window.innerWidth,
+        height = 400;
+
+    var svg = d3.selectAll("div")
+        .filter(".map")
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+
+    var projection = d3.geo.mercator()
+        .scale([100])
+        .translate([width / 4, height / 2]);
+
+
+    var geoPath = d3.geo.path()
+        .projection(projection);
+
+    queue()
+        .defer(d3.json, "ne_10m_admin_0_countries.json")
+        .await(ready);
+
+    function ready(error, countries) {
+        console.log(countries);
+        svg.append("g")
+            .selectAll("path")
+            .data(countries.features)
+            .enter()
+            .append("path")
+            .attr("d", geoPath)
+            .attr("class", "country")
+            .on("mouseover", function(d) {
+                d3.select("h2").text(d.properties.NAME);
+                d3.select(this).attr("class", "country hover");
+            })
+            .on("mouseout", function(d) {
+                d3.select("h2").text("");
+                d3.select(this).attr("class", "country");
+            });;
+    }
+    </script>
+</body>
+
+</html>
