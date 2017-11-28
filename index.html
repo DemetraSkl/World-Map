@@ -10,12 +10,19 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
     <script src="https://d3js.org/d3-array.v1.min.js"></script>
     <script src="https://d3js.org/d3-geo.v1.min.js"></script>
+    <script src="http://d3js.org/colorbrewer.v1.min.js"></script>
+    <script src="https://d3js.org/d3-color.v1.min.js"></script>
+    <script src="https://d3js.org/d3-interpolate.v1.min.js"></script>
+    <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+    <script src="https://d3js.org/d3-scale.v1.min.js"></script>
+    <!-- <link rel="stylesheet" href="http://colorbrewer2.org/export/colorbrewer.css"> -->
     <link href="http://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet" type="text/css">
     <style>
     body {
         padding: 0;
         margin: 0;
         background: whitesmoke;
+        font-family: "Proxima Nova", Montserrat, sans-serif;
     }
     /*   svg {
         background-color: blue;
@@ -25,7 +32,6 @@
         position: absolute;
         left: 20px;
         top: 10px;
-        font-family: "Proxima Nova", Montserrat, sans-serif;
         font-size: 2em;
         font-weight: 100;
         color: #005DAA;
@@ -34,8 +40,11 @@
     h2,
     h3,
     h4 {
-        font-family: "Proxima Nova", Montserrat, sans-serif;
         color: #005DAA;
+    }
+
+    .info {
+        color: #003380;
     }
 
     .country {
@@ -56,6 +65,8 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-6 map">
+            </div>
+            <div id="colors">
             </div>
             <div class="col-md-6">
                 <h2></h2>
@@ -89,9 +100,17 @@
 
     queue()
         .defer(d3.json, "ne_10m_admin_0_countries.json")
+        .defer(d3.csv, "rural_pop_csv/rural_pop_ds.csv") // Load rural population data obtained from https://data.worldbank.org/indicator/SP.RUR.TOTL.ZS
         .await(ready);
 
-    function ready(error, countries) {
+    function ready(error, countries, population) {
+        if (error) throw error;
+
+        var populationByCode = {};
+        population.forEach(function(d) {
+            populationByCode[d.CountryCode] = d.yr1960;
+        })
+
         svg.append("g")
             .selectAll("path")
             .data(countries.features)
@@ -99,6 +118,9 @@
             .append("path")
             .attr("d", geoPath)
             .attr("class", "country")
+            .style('fill', function(d) {
+                return color(populationByCode[d.properties.ADM0_A3])
+            })
             .on("mouseover", function(d) {
                 // Obtain country headers from geoJSON file
                 d3.select("h2").text(d.properties.NAME);
@@ -108,10 +130,19 @@
                 d3.select("h4")
                     .filter(".continent")
                     .text(d.properties.CONTINENT);
+                if (populationByCode[d.properties.ADM0_A3]) {
+                    d3.selectAll("div")
+                        .filter(".info")
+                        .text("Rural population percentage: " + populationByCode[d.properties.ADM0_A3]);
+                }
+                else {
+                    d3.selectAll("div")
+                        .filter(".info")
+                        .text("Rural population percentage: Information not available");                   
+                }
+
                 d3.select(this).attr("class", "country hover");
-                // Obtain country rural population data
-                rural_pop_csv();
-                match_pop_data(d);
+
 
             })
             .on("mouseout", function(d) {
@@ -127,39 +158,10 @@
             });
     }
 
-    var rural_pop_dataset;
-    // Load rural population data obtained from https://data.worldbank.org/indicator/SP.RUR.TOTL.ZS
-    var rural_pop_csv = function() {
-        d3.csv("rural_pop_csv/rural_pop_ds.csv", function(error, rural_pop_data) {
-            if (error) {
-                console.log("Could not load rural population data");
-            } else {
-                // Hand CSV data to global variable
-                rural_pop_dataset = rural_pop_data;
-            }
-
-        });
-
-    }
-
-    function match_pop_data(country) {
-        var data = rural_pop_dataset;
-        console.log("this is my d", country);
-        for (var i = 0; i < data.length; i++) {
-            // Check if geoJSON country code names match those of the csv file
-            if (country.properties.ADM0_A3 == data[i].CountryCode) {
-                console.log("country.properties.ADM0_A3");
-                console.log("The country name match is", country.properties.NAME);
-                console.log("POPULATTTTION", data[i].yr1960.toString());
-                var num = data[i].yr1960.toString();
-
-
-                d3.selectAll("div")
-                    .filter(".info")
-                    .text("Rural population percentage: " + num);
-            }
-        }
-    }
+    // Color scale obtained from http://colorbrewer2.org/#type=sequential&scheme=BuGn&n=3
+    var color = d3.scale.threshold()
+        .domain([20, 40, 60, 80])
+        .range(["#f0f9e8", "#bae4bc", "#7bccc4", "#43a2ca", "#0868ac"]);
     </script>
 </body>
 
