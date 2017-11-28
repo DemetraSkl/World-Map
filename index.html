@@ -55,6 +55,58 @@
     .hover {
         fill: yellow;
     }
+    /* Dropdown Button */
+
+    .dropbtn {
+        background-color: #4CAF50;
+        color: white;
+        /*padding: 16px;*/
+        padding-right: 16px;
+        padding-left: 16px;
+        font-size: 16px;
+        font-family: "Proxima Nova", Montserrat, sans-serif;
+        border: none;
+        cursor: pointer;
+    }
+    /* The container <div> - needed to position the dropdown content */
+
+    .dropdown {
+        /*position: relative;*/
+        /*display: inline-block;*/
+    }
+    /* Dropdown Content (Hidden by Default) */
+
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #f9f9f9;
+        min-width: 160px;
+        box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+        z-index: 1;
+    }
+    /* Links inside the dropdown */
+
+    .dropdown-content a {
+        color: black;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+    }
+    /* Change color of dropdown links on hover */
+
+    .dropdown-content a:hover {
+        background-color: #f1f1f1
+    }
+    /* Show the dropdown menu on hover */
+
+    .dropdown:hover .dropdown-content {
+        display: block;
+    }
+    /* Change the background color of the dropdown button when the dropdown content is shown */
+
+    .dropdown:hover .dropbtn {
+        background-color: #3e8e41;
+    }
     </style>
 </head>
 
@@ -64,9 +116,20 @@
     </div>
     <div class="container-fluid">
         <div class="row">
-            <div class="col-md-6 map">
+            <div class="col-md-2">
+                <div class="dropdown">
+                    <button class="dropbtn">Map Stats</button>
+                    <div class="dropdown-content">
+                        <a href="#" class="ref_none">None</a>
+                        <a href="#" class="ref_rural_pop">Rural Population</a>
+                    </div>
+                </div>
             </div>
-            <div id="colors">
+            <div class="col-md-10">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 map">
             </div>
             <div class="col-md-6">
                 <h2></h2>
@@ -77,9 +140,6 @@
         </div>
     </div>
     <script>
-    // Refs: http://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-0-details/
-
-
     var width = window.innerWidth,
         height = 400;
 
@@ -99,7 +159,7 @@
         .projection(projection);
 
     queue()
-        .defer(d3.json, "ne_10m_admin_0_countries.json")
+        .defer(d3.json, "ne_10m_admin_0_countries.json") // http://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-0-details/
         .defer(d3.csv, "rural_pop_csv/rural_pop_ds.csv") // Load rural population data obtained from https://data.worldbank.org/indicator/SP.RUR.TOTL.ZS
         .await(ready);
 
@@ -111,6 +171,9 @@
             populationByCode[d.CountryCode] = d.yr1960;
         })
 
+            // .style('fill', function(d) {
+            //     return color(populationByCode[d.properties.ADM0_A3])
+            // })
         svg.append("g")
             .selectAll("path")
             .data(countries.features)
@@ -118,9 +181,6 @@
             .append("path")
             .attr("d", geoPath)
             .attr("class", "country")
-            .style('fill', function(d) {
-                return color(populationByCode[d.properties.ADM0_A3])
-            })
             .on("mouseover", function(d) {
                 // Obtain country headers from geoJSON file
                 d3.select("h2").text(d.properties.NAME);
@@ -134,11 +194,10 @@
                     d3.selectAll("div")
                         .filter(".info")
                         .text("Rural population percentage: " + populationByCode[d.properties.ADM0_A3]);
-                }
-                else {
+                } else {
                     d3.selectAll("div")
                         .filter(".info")
-                        .text("Rural population percentage: Information not available");                   
+                        .text("Rural population percentage: Information not available");
                 }
 
                 d3.select(this).attr("class", "country hover");
@@ -156,7 +215,30 @@
                     .filter(".info")
                     .text("");
             });
+
+        d3.selectAll("a")
+            .filter(".ref_rural_pop")
+            .data(countries.features)
+            .on("click", function() {
+                d3.selectAll(".country")
+                    .style("fill", function(d) {
+                        return color(populationByCode[d.properties.ADM0_A3]);
+                    })
+            })
+
     }
+
+    // var elem = document.getElementById('select_ID');
+    // elem.addEventListener("change", onSelectChange);
+
+    // function onSelectChange(){
+    //   var value = this.value;
+    //   var fdata = filteredData(value);
+    //   d3.select('#Network_graph').selectAll("*").remove();
+    //   makeGraph("#Network_graph", fdata);
+    // }
+
+
 
     // Color scale obtained from http://colorbrewer2.org/#type=sequential&scheme=BuGn&n=3
     var color = d3.scale.threshold()
