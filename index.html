@@ -120,8 +120,9 @@
                 <div class="dropdown">
                     <button class="dropbtn">Map Stats</button>
                     <div class="dropdown-content">
-                        <a href="#" class="ref_none">None</a>
+                        <a href="index.html" class="ref_reset">Reset</a>
                         <a href="#" class="ref_rural_pop">Rural Population</a>
+                        <a href="#" class="ref_forest_a">Forest Area</a>
                     </div>
                 </div>
             </div>
@@ -135,7 +136,8 @@
                 <h2></h2>
                 <h3 class="subregion"></h3>
                 <h4 class="continent"></h4>
-                <div class="info"></div>
+                <div class="rural_pop"></div>
+                <div class="forest_a"></div>
             </div>
         </div>
     </div>
@@ -161,19 +163,22 @@
     queue()
         .defer(d3.json, "ne_10m_admin_0_countries.json") // http://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-0-details/
         .defer(d3.csv, "rural_pop_csv/rural_pop_ds.csv") // Load rural population data obtained from https://data.worldbank.org/indicator/SP.RUR.TOTL.ZS
+        .defer(d3.csv, "forest_area_csv/forest_area.csv") // Data obtained from https://data.worldbank.org/indicator/AG.LND.FRST.ZS
         .await(ready);
 
-    function ready(error, countries, population) {
+    function ready(error, countries, population, forestA) {
         if (error) throw error;
 
         var populationByCode = {};
         population.forEach(function(d) {
-            populationByCode[d.CountryCode] = d.yr1960;
+            populationByCode[d.CountryCode] = d.yr2016;
         })
 
-            // .style('fill', function(d) {
-            //     return color(populationByCode[d.properties.ADM0_A3])
-            // })
+        var forestAByCode = {};
+        forestA.forEach(function(d) {
+            forestAByCode[d.CountryCode] = d.yr2015;
+        })
+
         svg.append("g")
             .selectAll("path")
             .data(countries.features)
@@ -192,13 +197,24 @@
                     .text(d.properties.CONTINENT);
                 if (populationByCode[d.properties.ADM0_A3]) {
                     d3.selectAll("div")
-                        .filter(".info")
+                        .filter(".rural_pop")
                         .text("Rural population percentage: " + populationByCode[d.properties.ADM0_A3]);
                 } else {
                     d3.selectAll("div")
-                        .filter(".info")
+                        .filter(".rural_pop")
                         .text("Rural population percentage: Information not available");
                 }
+
+                if (forestAByCode[d.properties.ADM0_A3]) {
+                    d3.selectAll("div")
+                        .filter(".forest_a")
+                        .text("Forest area coverage percentage: " + forestAByCode[d.properties.ADM0_A3]);
+                } else {
+                    d3.selectAll("div")
+                        .filter(".forest_a")
+                        .text("Forest area coverage percentage: Information not available");
+                }
+
 
                 d3.select(this).attr("class", "country hover");
 
@@ -212,38 +228,45 @@
                     .text("");
                 d3.select(this).attr("class", "country");
                 d3.selectAll("div")
-                    .filter(".info")
+                    .filter(".rural_pop")
+                    .text("");
+                d3.selectAll("div")
+                    .filter(".forest_a")
                     .text("");
             });
 
+        // Color countries based on rural population data
         d3.selectAll("a")
             .filter(".ref_rural_pop")
             .data(countries.features)
             .on("click", function() {
                 d3.selectAll(".country")
+                    .transition()
                     .style("fill", function(d) {
-                        return color(populationByCode[d.properties.ADM0_A3]);
+                        return colorYlOrBr(populationByCode[d.properties.ADM0_A3]);
+                    })
+            })
+
+        d3.selectAll("a")
+            .filter(".ref_forest_a")
+            .data(countries.features)
+            .on("click", function() {
+                d3.selectAll(".country")
+                    .transition()
+                    .style("fill", function(d) {
+                        return colorBuGr(forestAByCode[d.properties.ADM0_A3]);
                     })
             })
 
     }
 
-    // var elem = document.getElementById('select_ID');
-    // elem.addEventListener("change", onSelectChange);
-
-    // function onSelectChange(){
-    //   var value = this.value;
-    //   var fdata = filteredData(value);
-    //   d3.select('#Network_graph').selectAll("*").remove();
-    //   makeGraph("#Network_graph", fdata);
-    // }
-
-
-
     // Color scale obtained from http://colorbrewer2.org/#type=sequential&scheme=BuGn&n=3
-    var color = d3.scale.threshold()
-        .domain([20, 40, 60, 80])
-        .range(["#f0f9e8", "#bae4bc", "#7bccc4", "#43a2ca", "#0868ac"]);
+    var colorYlOrBr = d3.scale.threshold()
+        .domain([12.5, 25, 37.5, 50, 62.5, 75, 87.5, 90])
+        .range(["#ffffe5", "#fff7bc", "#fee391", "#fec44f", "#fe9929", "#ec7014", "#cc4c02", "#993404", "#662506"]);
+    var colorBuGr = d3.scale.threshold()
+        .domain([12.5, 25, 37.5, 50, 62.5, 75, 87.5, 90])
+        .range(["#f7fcfd", "#e5f5f9", "#ccece6", "#99d8c9", "#66c2a4", "#41ae76", "#238b45", "#006d2c", "#00441b"]);
     </script>
 </body>
 
