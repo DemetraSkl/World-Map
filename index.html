@@ -2,7 +2,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>A D3 map using queue.js</title>
+    <title>A D3 world map</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <script src="https://code.jquery.com/jquery-3.2.1.js" integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE=" crossorigin="anonymous"></script>
@@ -17,9 +17,10 @@
         margin: 0;
         background: whitesmoke;
     }
- /*   svg {
+    /*   svg {
         background-color: blue;
     }*/
+
     h1 {
         position: absolute;
         left: 20px;
@@ -28,10 +29,11 @@
         font-size: 2em;
         font-weight: 100;
         color: #005DAA;
-        /* offical UK Kentucky blue */
     }
 
-    h2 {
+    h2,
+    h3,
+    h4 {
         font-family: "Proxima Nova", Montserrat, sans-serif;
         color: #005DAA;
     }
@@ -57,15 +59,15 @@
             </div>
             <div class="col-md-6">
                 <h2></h2>
+                <h3 class="subregion"></h3>
+                <h4 class="continent"></h4>
             </div>
         </div>
     </div>
-
     <script>
     // Refs: http://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-0-details/
 
-    // var width = window.innerWidth,
-    //     height = window.innerHeight;
+
     var width = window.innerWidth,
         height = 400;
 
@@ -99,13 +101,37 @@
             .attr("class", "country")
             .on("mouseover", function(d) {
                 d3.select("h2").text(d.properties.NAME);
+                d3.select("h3")
+                    .filter(".subregion")
+                    .text(d.properties.SUBREGION);
+                d3.select("h4")
+                    .filter(".continent")
+                    .text(d.properties.CONTINENT);
                 d3.select(this).attr("class", "country hover");
             })
             .on("mouseout", function(d) {
                 d3.select("h2").text("");
+                d3.select("h3")
+                    .text("");
+                d3.select("h4")
+                    .text("");
                 d3.select(this).attr("class", "country");
             });;
     }
+    // Load rural population data obtained from https://data.worldbank.org/indicator/SP.RUR.TOTL.ZS
+    var rural_pop_csv = function() {
+        d3.csv("rural_pop_csv/rural_pop_edit.csv", function(rural_pop_data) {
+            console.log("dt:", rural_pop_data);
+            for (var i = 0; i < rural_pop_data.length; i++) {
+                console.log("name:", rural_pop_data[i].CountryName);
+                console.log("code:", rural_pop_data[i].CountryCode);
+            }
+            return rural_pop_data;
+        });
+
+    }
+
+
     </script>
 </body>
 
