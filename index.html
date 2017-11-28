@@ -61,6 +61,7 @@
                 <h2></h2>
                 <h3 class="subregion"></h3>
                 <h4 class="continent"></h4>
+                <div class="info"></div>
             </div>
         </div>
     </div>
@@ -91,7 +92,6 @@
         .await(ready);
 
     function ready(error, countries) {
-        console.log(countries);
         svg.append("g")
             .selectAll("path")
             .data(countries.features)
@@ -100,6 +100,7 @@
             .attr("d", geoPath)
             .attr("class", "country")
             .on("mouseover", function(d) {
+                // Obtain country headers from geoJSON file
                 d3.select("h2").text(d.properties.NAME);
                 d3.select("h3")
                     .filter(".subregion")
@@ -108,6 +109,10 @@
                     .filter(".continent")
                     .text(d.properties.CONTINENT);
                 d3.select(this).attr("class", "country hover");
+                // Obtain country rural population data
+                rural_pop_csv();
+                match_pop_data(d);
+
             })
             .on("mouseout", function(d) {
                 d3.select("h2").text("");
@@ -116,22 +121,45 @@
                 d3.select("h4")
                     .text("");
                 d3.select(this).attr("class", "country");
-            });;
+                d3.selectAll("div")
+                    .filter(".info")
+                    .text("");
+            });
     }
+
+    var rural_pop_dataset;
     // Load rural population data obtained from https://data.worldbank.org/indicator/SP.RUR.TOTL.ZS
     var rural_pop_csv = function() {
-        d3.csv("rural_pop_csv/rural_pop_edit.csv", function(rural_pop_data) {
-            console.log("dt:", rural_pop_data);
-            for (var i = 0; i < rural_pop_data.length; i++) {
-                console.log("name:", rural_pop_data[i].CountryName);
-                console.log("code:", rural_pop_data[i].CountryCode);
+        d3.csv("rural_pop_csv/rural_pop_ds.csv", function(error, rural_pop_data) {
+            if (error) {
+                console.log("Could not load rural population data");
+            } else {
+                // Hand CSV data to global variable
+                rural_pop_dataset = rural_pop_data;
             }
-            return rural_pop_data;
+
         });
 
     }
 
+    function match_pop_data(country) {
+        var data = rural_pop_dataset;
+        console.log("this is my d", country);
+        for (var i = 0; i < data.length; i++) {
+            // Check if geoJSON country code names match those of the csv file
+            if (country.properties.ADM0_A3 == data[i].CountryCode) {
+                console.log("country.properties.ADM0_A3");
+                console.log("The country name match is", country.properties.NAME);
+                console.log("POPULATTTTION", data[i].yr1960.toString());
+                var num = data[i].yr1960.toString();
 
+
+                d3.selectAll("div")
+                    .filter(".info")
+                    .text("Rural population percentage: " + num);
+            }
+        }
+    }
     </script>
 </body>
 
