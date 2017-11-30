@@ -224,7 +224,7 @@
         </div>
         <div class="row">
             <div class="col-md-6 wb_ref">
-                <span>Global development data were obtained from  </span>
+                <span>Global development data obtained from  </span>
                 <a href="https://data.worldbank.org/">The World Bank.</a>
             </div>
             <div class="col-md-6"></div>
@@ -233,7 +233,6 @@
     <script>
     var DATA = {};
     DATA.year = "yr" + document.getElementById("myRange").value.toString();
-    console.log("ffff", DATA.year);
 
     var width = window.innerWidth,
         height = 400;
@@ -302,7 +301,6 @@
         slider.oninput = function() {
             output.innerHTML = this.value;
             DATA.year = "yr" + this.value.toString();
-            console.log("yeeeeeeear", DATA.year);
         }
 
 
@@ -479,16 +477,13 @@
 
     // Get CSV value    
     function getCSVdata(type, countryCode, ruralData, forestData) {
-        console.log("being called");
         if (type === "rural") {
-            console.log("got my yeeear", DATA.year);
             var test = _.filter(ruralData, function(d) {
                 var csvCode = d.CountryCode;
                 var geoJsonCode = countryCode;
                 return csvCode === geoJsonCode;
             })
-            //debugger;
-            console.log("teeest", test.length);
+            
             if (test.length > 0) {
                 if (test[0][DATA.year] > 0) {
                     return test[0][DATA.year].toString() + "%";
@@ -499,7 +494,6 @@
                 return "Information not available";
             }
         } else if (type === "forest") {
-            console.log("got my yeeear forest", DATA.year);
             var test = _.filter(forestData, function(d) {
                 var csvCode = d.CountryCode;
                 var geoJsonCode = countryCode;
