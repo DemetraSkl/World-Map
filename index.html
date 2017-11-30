@@ -15,6 +15,7 @@
     <script src="https://d3js.org/d3-interpolate.v1.min.js"></script>
     <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
     <script src="https://d3js.org/d3-scale.v1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
     <!-- <link rel="stylesheet" href="http://colorbrewer2.org/export/colorbrewer.css"> -->
     <link href="http://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet" type="text/css">
     <style>
@@ -34,28 +35,46 @@
         top: 10px;
         font-size: 2em;
         font-weight: 100;
-        color: #005DAA;
+        color: #514b4b;
     }
 
     h2,
     h3,
     h4 {
-        color: #005DAA;
+        color: #514b4b;
+    }
+
+    text {
+        margin-left: auto;
+        margin-right: auto
     }
 
     .info {
-        color: #003380;
+        color: #514b4b;
     }
 
     .country {
         stroke: #fff;
-        fill: #005DAA;
+        fill: #8c8c8c;
     }
 
     .hover {
         fill: yellow;
     }
-    /* Dropdown Button */
+
+    .map_header {
+        display: flex;
+        font-size: 2em;
+        color: #514b4b;
+        justify-content: center;
+    }
+    /* Dropdown Button Styling*/
+    /*******************************
+     * Title: How to Create a Hoverable Dropdown
+     * Author: w3schools.com
+     * Code version: N/A
+     * Availability: https://www.w3schools.com/howto/howto_css_dropdown.asp
+     ********************************/
 
     .dropbtn {
         background-color: #4CAF50;
@@ -67,12 +86,6 @@
         font-family: "Proxima Nova", Montserrat, sans-serif;
         border: none;
         cursor: pointer;
-    }
-    /* The container <div> - needed to position the dropdown content */
-
-    .dropdown {
-        /*position: relative;*/
-        /*display: inline-block;*/
     }
     /* Dropdown Content (Hidden by Default) */
 
@@ -107,6 +120,48 @@
     .dropdown:hover .dropbtn {
         background-color: #3e8e41;
     }
+    /* Slider styling*/
+    /*******************************
+     * Title: How to Create Sliders
+     * Author: w3schools.com
+     * Code version: N/A
+     * Availability: https://www.w3schools.com/howto/howto_js_rangeslider.asp
+     ********************************/
+
+    #slidecontainer {
+        width: 100%;
+    }
+
+    .slider {
+        -webkit-appearance: none;
+        width: 100%;
+        height: 25px;
+        background: #d3d3d3;
+        outline: none;
+        opacity: 0.7;
+        -webkit-transition: .2s;
+        transition: opacity .2s;
+    }
+
+    .slider:hover {
+        opacity: 1;
+    }
+
+    .slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 25px;
+        height: 25px;
+        background: #4CAF50;
+        cursor: pointer;
+    }
+
+    .slider::-moz-range-thumb {
+        width: 25px;
+        height: 25px;
+        background: #4CAF50;
+        cursor: pointer;
+    }
     </style>
 </head>
 
@@ -130,6 +185,11 @@
             </div>
         </div>
         <div class="row">
+            <div class="col-md-6 map_header">
+            </div>
+            <div class="col-md-6"></div>
+        </div>
+        <div class="row">
             <div class="col-md-6 map">
             </div>
             <div class="col-md-6">
@@ -140,8 +200,41 @@
                 <div class="forest_a"></div>
             </div>
         </div>
+        <div class="row">
+            <div class="col-md-6 scale"></div>
+            <div class="col-md-6"></div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 ">
+                <div id="slidecontainer">
+                    <input type="range" class="slider" id="myRange" min="1960" max="2016" value="2014">
+                    <p>Year: <span id="demo"></span></p>
+                </div>
+            </div>
+            <div class="col-md-6"></div>
+        </div>
+        </br>
+        <div class="row">
+            <div class="col-md-6 wb_ref">
+                <span>The map dataset was obtained from </span>
+                <a href="http://www.naturalearthdata.com/">Natural Earth </a>
+                <span>public domain.</span>
+            </div>
+            <div class="col-md-6"></div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 wb_ref">
+                <span>Global development data were obtained from  </span>
+                <a href="https://data.worldbank.org/">The World Bank.</a>
+            </div>
+            <div class="col-md-6"></div>
+        </div>
     </div>
     <script>
+    var DATA = {};
+    DATA.year = "yr" + document.getElementById("myRange").value.toString();
+    console.log("ffff", DATA.year);
+
     var width = window.innerWidth,
         height = 400;
 
@@ -151,6 +244,13 @@
         .attr("width", width)
         .attr("height", height);
 
+    var svg_scale = d3.selectAll("div")
+        .filter(".scale")
+        .append("svg")
+        .attr("width", width / 4)
+        .attr("height", height / 5);
+
+    var color_data = [{ num: 0 }, { num: 10 }, { num: 20 }, { num: 30 }, { num: 40 }, { num: 50 }, { num: 60 }, { num: 70 }, { num: 80 }, { num: 90 }];
 
     var projection = d3.geo.mercator()
         .scale([100])
@@ -160,10 +260,25 @@
     var geoPath = d3.geo.path()
         .projection(projection);
 
+    /*******************************
+     * Data: ne_10m_admin_0_countries.json
+     * Author: Natural Earth
+     * Availability: http://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-0-details/
+     ********************************/
+    /*******************************
+     * Data: rural_pop_ds.csv
+     * Author: World Bank Group
+     * Availability: https://data.worldbank.org/indicator/SP.RUR.TOTL.ZS
+     ********************************/  
+    /*******************************
+     * Data: forest_area.csv
+     * Author: World Bank Group
+     * Availability: https://data.worldbank.org/indicator/AG.LND.FRST.ZS
+     ********************************/
     queue()
-        .defer(d3.json, "ne_10m_admin_0_countries.json") // http://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-0-details/
-        .defer(d3.csv, "rural_pop_csv/rural_pop_ds.csv") // Load rural population data obtained from https://data.worldbank.org/indicator/SP.RUR.TOTL.ZS
-        .defer(d3.csv, "forest_area_csv/forest_area.csv") // Data obtained from https://data.worldbank.org/indicator/AG.LND.FRST.ZS
+        .defer(d3.json, "ne_10m_admin_0_countries.json")
+        .defer(d3.csv, "rural_pop_csv/rural_pop_ds.csv")
+        .defer(d3.csv, "forest_area_csv/forest_area.csv")
         .await(ready);
 
     function ready(error, countries, population, forestA) {
@@ -178,6 +293,21 @@
         forestA.forEach(function(d) {
             forestAByCode[d.CountryCode] = d.yr2015;
         })
+
+        var slider = document.getElementById("myRange");
+        var output = document.getElementById("demo");
+        output.innerHTML = slider.value;
+
+        // Obtain selected year value
+        slider.oninput = function() {
+            output.innerHTML = this.value;
+            DATA.year = "yr" + this.value.toString();
+            console.log("yeeeeeeear", DATA.year);
+        }
+
+
+        var ruralPopData = population;
+        var forestAData = forestA;
 
         svg.append("g")
             .selectAll("path")
@@ -195,24 +325,25 @@
                 d3.select("h4")
                     .filter(".continent")
                     .text(d.properties.CONTINENT);
-                if (populationByCode[d.properties.ADM0_A3]) {
+                if (getCSVdata("rural", d.properties.ADM0_A3, ruralPopData, forestAData)) {
                     d3.selectAll("div")
                         .filter(".rural_pop")
-                        .text("Rural population percentage: " + populationByCode[d.properties.ADM0_A3]);
+                        .text("Rural population: " + getCSVdata("rural", d.properties.ADM0_A3, ruralPopData, forestAData));
                 } else {
                     d3.selectAll("div")
                         .filter(".rural_pop")
-                        .text("Rural population percentage: Information not available");
+                        .text("Rural population: Information not available");
                 }
 
-                if (forestAByCode[d.properties.ADM0_A3]) {
+                if (getCSVdata("forest", d.properties.ADM0_A3, ruralPopData, forestAData)) {
+                    var percentage = getCSVdata("forest", d.properties.ADM0_A3, ruralPopData, forestAData);
                     d3.selectAll("div")
                         .filter(".forest_a")
-                        .text("Forest area coverage percentage: " + forestAByCode[d.properties.ADM0_A3]);
+                        .text("Forest area coverage: " + percentage);
                 } else {
                     d3.selectAll("div")
                         .filter(".forest_a")
-                        .text("Forest area coverage percentage: Information not available");
+                        .text("Forest area coverage: Information not available");
                 }
 
 
@@ -235,7 +366,18 @@
                     .text("");
             });
 
-        // Color countries based on rural population data
+        // Create 10 color scale
+        svg_scale.selectAll("rect")
+            .data(color_data)
+            .enter().append("rect")
+            .attr("x", function(d, i) { return i * 40; })
+            .attr("y", 30)
+            .attr("width", 40)
+            .attr("height", 20)
+            .style("fill", "whitesmoke");
+
+
+        // Color countries based on rural population data in 2016
         d3.selectAll("a")
             .filter(".ref_rural_pop")
             .data(countries.features)
@@ -243,10 +385,44 @@
                 d3.selectAll(".country")
                     .transition()
                     .style("fill", function(d) {
-                        return colorYlOrBr(populationByCode[d.properties.ADM0_A3]);
-                    })
-            })
+                        return colorYlOrBr(parseFloat(getCSVdata("rural", d.properties.ADM0_A3, ruralPopData, forestAData)));
+                    });
+                d3.selectAll(".map_header")
+                    .text("Rural population " + DATA.year.slice(2));
 
+
+                svg_scale.selectAll("rect")
+                    .style("fill", function(d) {
+                        return colorYlOrBr(d.num);
+                    });
+
+                svg_scale.selectAll("text")
+                    .data(color_data)
+                    .enter().append("text")
+                    .attr("x", function(d, i) { return i * 40; })
+                    .attr("y", 20);
+
+                // Color scale
+                d3.selectAll("text")
+                    .data(color_data)
+                    .text(function(d) {
+                        return d.num.toString() + "%";
+                    })
+                    .attr("class", "scale_txt");
+
+
+                d3.selectAll(".slider")
+                    .on("click", function() {
+                        d3.selectAll(".country")
+                            .transition()
+                            .style("fill", function(d) {
+                                return colorYlOrBr(parseFloat(getCSVdata("rural", d.properties.ADM0_A3, ruralPopData, forestAData)));
+                            });
+                    });
+
+
+            });
+        // Color countries based on forest area coverage in 2015
         d3.selectAll("a")
             .filter(".ref_forest_a")
             .data(countries.features)
@@ -254,19 +430,95 @@
                 d3.selectAll(".country")
                     .transition()
                     .style("fill", function(d) {
-                        return colorBuGr(forestAByCode[d.properties.ADM0_A3]);
+                        return colorBuGr(parseFloat(getCSVdata("forest", d.properties.ADM0_A3, ruralPopData, forestAData)));
+                    });
+                d3.selectAll(".map_header")
+                    .text("Forest area " + DATA.year.slice(2));
+
+                // Color scale
+                svg_scale.selectAll("rect")
+                    .style("fill", function(d) {
+                        return colorBuGr(d.num);
+                    });
+
+                svg_scale.selectAll("text")
+                    .data(color_data)
+                    .enter().append("text")
+                    .attr("x", function(d, i) { return i * 40; })
+                    .attr("y", 20);
+
+                d3.selectAll("text")
+                    .data(color_data)
+                    .text(function(d) {
+                        return d.num.toString() + "%";
                     })
-            })
+                    .attr("class", "scale_txt");
+                d3.selectAll(".slider")
+                    .on("click", function() {
+                        d3.selectAll(".country")
+                            .transition()
+                            .style("fill", function(d) {
+                                return colorBuGr(parseFloat(getCSVdata("forest", d.properties.ADM0_A3, ruralPopData, forestAData)));
+                            });
+                    });
+            });
+
 
     }
 
-    // Color scale obtained from http://colorbrewer2.org/#type=sequential&scheme=BuGn&n=3
+    // Color scale color combinations obtained from http://colorbrewer2.org/#type=sequential&scheme=BuGn&n=3
     var colorYlOrBr = d3.scale.threshold()
         .domain([12.5, 25, 37.5, 50, 62.5, 75, 87.5, 90])
         .range(["#ffffe5", "#fff7bc", "#fee391", "#fec44f", "#fe9929", "#ec7014", "#cc4c02", "#993404", "#662506"]);
     var colorBuGr = d3.scale.threshold()
         .domain([12.5, 25, 37.5, 50, 62.5, 75, 87.5, 90])
         .range(["#f7fcfd", "#e5f5f9", "#ccece6", "#99d8c9", "#66c2a4", "#41ae76", "#238b45", "#006d2c", "#00441b"]);
+
+
+
+
+    // Get CSV value    
+    function getCSVdata(type, countryCode, ruralData, forestData) {
+        console.log("being called");
+        if (type === "rural") {
+            console.log("got my yeeear", DATA.year);
+            var test = _.filter(ruralData, function(d) {
+                var csvCode = d.CountryCode;
+                var geoJsonCode = countryCode;
+                return csvCode === geoJsonCode;
+            })
+            //debugger;
+            console.log("teeest", test.length);
+            if (test.length > 0) {
+                if (test[0][DATA.year] > 0) {
+                    return test[0][DATA.year].toString() + "%";
+                } else {
+                    return "Information not available";
+                }
+            } else {
+                return "Information not available";
+            }
+        } else if (type === "forest") {
+            console.log("got my yeeear forest", DATA.year);
+            var test = _.filter(forestData, function(d) {
+                var csvCode = d.CountryCode;
+                var geoJsonCode = countryCode;
+                return csvCode === geoJsonCode;
+            })
+
+            if (test.length > 0) {
+                if (test[0][DATA.year] > 0) {
+                    return test[0][DATA.year].toString().slice(0, 6) + "%";
+                } else {
+                    return "Information not available";
+                }
+            } else {
+                return "Information not available";
+            }
+        } else {
+            console.log("Could not load CSV data");
+        }
+    };
     </script>
 </body>
 
