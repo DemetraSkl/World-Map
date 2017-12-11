@@ -181,8 +181,7 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-6 map_header">
-            </div>
+            <div class="col-md-6 map_header"></div>
             <div class="col-md-6"></div>
         </div>
         <div class="row">
@@ -264,7 +263,7 @@
      * Data: rural_pop_ds.csv
      * Author: World Bank Group
      * Availability: https://data.worldbank.org/indicator/SP.RUR.TOTL.ZS
-     ********************************/  
+     ********************************/
     /*******************************
      * Data: forest_area.csv
      * Author: World Bank Group
@@ -371,7 +370,7 @@
             .style("fill", "whitesmoke");
 
 
-        // Color countries based on rural population data in 2016
+        // Color countries based on rural population data 
         d3.selectAll("a")
             .filter(".ref_rural_pop")
             .data(countries.features)
@@ -412,11 +411,13 @@
                             .style("fill", function(d) {
                                 return colorYlOrBr(parseFloat(getCSVdata("rural", d.properties.ADM0_A3, ruralPopData, forestAData)));
                             });
+                        d3.selectAll(".map_header")
+                            .text("Rural population " + DATA.year.slice(2));
                     });
 
 
             });
-        // Color countries based on forest area coverage in 2015
+        // Color countries based on forest area coverage
         d3.selectAll("a")
             .filter(".ref_forest_a")
             .data(countries.features)
@@ -454,6 +455,8 @@
                             .style("fill", function(d) {
                                 return colorBuGr(parseFloat(getCSVdata("forest", d.properties.ADM0_A3, ruralPopData, forestAData)));
                             });
+                        d3.selectAll(".map_header")
+                            .text("Forest area " + DATA.year.slice(2));
                     });
             });
 
@@ -479,7 +482,7 @@
                 var geoJsonCode = countryCode;
                 return csvCode === geoJsonCode;
             })
-            
+
             if (test.length > 0) {
                 if (test[0][DATA.year] > 0) {
                     return test[0][DATA.year].toString() + "%";
