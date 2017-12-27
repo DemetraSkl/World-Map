@@ -24,7 +24,7 @@
     </div>
     <div class="container-fluid">
         <div class="row">
-            <div class="col-md-2">
+            <div class="col-sm-2">
                 <div class="dropdown">
                     <button class="dropbtn">Map Stats</button>
                     <div class="dropdown-content">
@@ -34,52 +34,52 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-10">
+            <div class="col-sm-10">
             </div>
         </div>
         <div class="row">
-            <div class="col-md-6 map_header"></div>
-            <div class="col-md-6"></div>
+            <div class="col-sm-6 map_header"></div>
+            <div class="col-sm-6"></div>
         </div>
         <div class="row">
-            <div class="col-md-6 map">
-            </div>
-            <div class="col-md-6">
-                <h2></h2>
-                <h3 class="subregion"></h3>
+            <div class="col-sm-6 map"></div>
+            <div class="col-sm-1"></div>
+            <div class="col-sm-5">
+                <h3></h3>
+                <h4 class="subregion"></h4>
                 <h4 class="continent"></h4>
                 <div class="rural_pop"></div>
                 <div class="forest_a"></div>
             </div>
         </div>
         <div class="row">
-            <div class="col-md-6 scale"></div>
-            <div class="col-md-6"></div>
+            <div class="col-sm-6 scale"></div>
+            <div class="col-sm-6"></div>
         </div>
         <div class="row">
-            <div class="col-md-6 ">
+            <div class="col-sm-6 ">
                 <div id="slidecontainer">
                     <input type="range" class="slider" id="myRange" min="1960" max="2016" value="2014">
                     <p>Year: <span id="demo"></span></p>
                 </div>
             </div>
-            <div class="col-md-6"></div>
+            <div class="col-sm-6"></div>
         </div>
         </br>
         <div class="row">
-            <div class="col-md-6 wb_ref">
+            <div class="col-sm-6 wb_ref">
                 <span>The map dataset was obtained from </span>
                 <a href="http://www.naturalearthdata.com/">Natural Earth </a>
                 <span>public domain.</span>
             </div>
-            <div class="col-md-6"></div>
+            <div class="col-sm-6"></div>
         </div>
         <div class="row">
-            <div class="col-md-6 wb_ref">
+            <div class="col-sm-6 wb_ref">
                 <span>Global development data obtained from  </span>
                 <a href="https://data.worldbank.org/">The World Bank.</a>
             </div>
-            <div class="col-md-6"></div>
+            <div class="col-sm-6"></div>
         </div>
     </div>
     <script>
@@ -87,25 +87,33 @@
     DATA.year = "yr" + document.getElementById("myRange").value.toString();
 
     var width = window.innerWidth,
-        height = 400;
+        height = window.innerHeight;
+
+    var mapWidth = width / 2,
+        mapHeight = height * 2 / 3;
 
     var svg = d3.selectAll("div")
         .filter(".map")
         .append("svg")
-        .attr("width", width)
-        .attr("height", height);
+        .attr("width", mapWidth)
+        .attr("height", mapHeight);
 
     var svg_scale = d3.selectAll("div")
         .filter(".scale")
         .append("svg")
         .attr("width", width / 2)
-        .attr("height", height / 5);
+        .attr("height", height / 8);
 
     var color_data = [{ num: 0 }, { num: 10 }, { num: 20 }, { num: 30 }, { num: 40 }, { num: 50 }, { num: 60 }, { num: 70 }, { num: 80 }, { num: 90 }];
 
+    // Get map top left corner position
+    var theMap = document.querySelector(".map");
+    var mapRect = theMap.getBoundingClientRect();
+    console.log(mapRect.top, mapRect.left);
+
     var projection = d3.geo.mercator()
-        .scale([100])
-        .translate([width / 4, height / 2]);
+        .scale([mapHeight / 5])
+        .translate([mapWidth / 2, mapHeight / 1.8]);
 
 
     var geoPath = d3.geo.path()
@@ -168,8 +176,8 @@
             .attr("class", "country")
             .on("mouseover", function(d) {
                 // Obtain country headers from geoJSON file
-                d3.select("h2").text(d.properties.NAME);
-                d3.select("h3")
+                d3.select("h3").text(d.properties.NAME);
+                d3.select("h4")
                     .filter(".subregion")
                     .text(d.properties.SUBREGION);
                 d3.select("h4")
