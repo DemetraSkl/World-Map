@@ -6,14 +6,8 @@ body {
 }
 
 
-/*   svg {
-        background-color: blue;
-    }*/
-
 h1 {
-    position: absolute;
-    left: 20px;
-    top: 10px;
+    padding-left: 20px;
     font-size: 2em;
     font-weight: 100;
     color: #514b4b;
